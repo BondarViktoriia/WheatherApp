@@ -1,5 +1,110 @@
 <template>
-  <div></div>
+  <div class="flex flex-col flex-1 items-center">
+    <!-- /////////////// -->
+    <div
+      v-if="route.query.preview"
+      class="text-white p-4 bg-weather-secondary w-full text-center"
+    >
+      <p>
+        You are currently previewing this city, click the "+" icon to start
+        tracking this city.
+      </p>
+    </div>
+    <!-- /////////////////// -->
+    <div class="flex flex-col items-center text-white py-12">
+      <h1 class="text-4xl mb-2">{{ route.params.city }}</h1>
+      <p class="text-sm mb-12">
+        {{
+          new Date(weatherData.currentTime).toLocaleDateString("en-us", {
+            weekday: "short",
+            day: "2-digit",
+            month: "long",
+          })
+        }}
+        {{
+          new Date(weatherData.currentTime).toLocaleTimeString("en-us", {
+            timeStyle: "short",
+          })
+        }}
+      </p>
+      <p class="text-8xl mb-8">
+        {{ Math.round(((weatherData.current.temp - 32) * 5) / 9) }}&deg;
+      </p>
+      <p>
+        Feels like
+        {{ Math.round(((weatherData.current.feels_like - 32) * 5) / 9) }} &deg;
+      </p>
+      <p class="capitalize">
+        {{ weatherData.current.weather[0].description }}
+      </p>
+      <img
+        class="w-[150px] h-auto"
+        :src="`http://openweathermap.org/img/wn/${weatherData.current.weather[0].icon}@2x.png`"
+        :alt="` weatherData.current.weather[0].description`"
+      />
+    </div>
+
+    <hr class="border-white border-opacity-10 border w-full" />
+    <!-- ///////////////////// -->
+    <div class="max-w-screen-md w-full py-12">
+      <div class="mx-8 text-white">
+        <h2 class="mb-4">Hourly Weather</h2>
+        <div class="flex gap-10 overflow-x-scroll">
+          <div
+            v-for="hourData in weatherData.hourly"
+            :key="hourData.dt"
+            class="flex flex-col gap-4 items-center"
+          >
+            <p class="text-md whitespace-nowrap">
+              {{
+                new Date(hourData.currentTime).toLocaleTimeString("en-us", {
+                  hour: "numeric",
+                })
+              }}
+            </p>
+            <img
+              :src="`http://openweathermap.org/img/wn/${hourData.weather[0].icon}@2x.png`"
+              :alt="`hourData.weather[0].description`"
+              class="w-auto h-[50px] object-cover"
+            />
+            <p class="text-xl">
+              {{ Math.round(((hourData.temp - 32) * 5) / 9) }}&deg;
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="border-white border-opacity-10 border w-full" />
+    <!-- /////////////////////////////////// -->
+    <div class="max-w-screen-md w-full py-12">
+      <div class="mx-8 text-white">
+        <h2 class="mb-4">7 Day Forecast</h2>
+        <div
+          v-for="day in weatherData.daily"
+          :key="day.dt"
+          class="flex items-center"
+        >
+          <p class="flex-1">
+            {{
+              new Date(day.dt * 1000).toLocaleDateString("en-us", {
+                weekday: "long",
+              })
+            }}
+          </p>
+          <img
+            class="w-[50px] h-[50px] object-cover"
+            :src="`http://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png`"
+            :alt="`day.weather[0].description`"
+          />
+          <div class="flex gap-2 flex-1 justify-end">
+            <p>H: {{ Math.round(((day.temp.max - 32) * 5) / 9) }}</p>
+            <p>L:{{ Math.round(((day.temp.min - 32) * 5) / 9) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -7,10 +112,11 @@ import axios from "axios";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
+const pid = "20f56119476596c34637a844ad857552";
 const getWeatherData = async () => {
   try {
     const weatherData = await axios.get(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${route.query.lat}&lon=${route.query.lng}&exclude={part}&appid=20f56119476596c34637a844ad857552&units=imperial`
+      `https://api.openweathermap.org/data/3.0/onecall?lat=${route.query.lat}&lon=${route.query.lng}&exclude={part}&appid=${pid}&units=imperial`
     );
 
     // cal current date & time
@@ -25,11 +131,10 @@ const getWeatherData = async () => {
       hour.currentTime = utc + 1000 * weatherData.data.timezone_offset;
     });
 
-    return weatherData;
-  } catch (error) {
-    console.log(error);
+    return weatherData.data;
+  } catch (err) {
+    console.log(err);
   }
 };
 const weatherData = await getWeatherData();
-console.log(weatherData, "=>weatherData");
 </script>
