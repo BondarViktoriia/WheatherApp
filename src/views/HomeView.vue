@@ -33,7 +33,9 @@
     <div class="flex flex-col gap-4">
       <Suspense>
         <CityList />
-        <template #fallback><p>Loading...</p></template>
+        <template #fallback>
+          <CityCardSceleton />
+        </template>
       </Suspense>
     </div>
   </main>
@@ -44,6 +46,7 @@ import { ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import CityList from "../components/CityList.vue";
+import CityCardSceleton from "../components/CityCardSceleton.vue";
 
 const mapboxAPIKey =
   "pk.eyJ1IjoidmJvbmRhciIsImEiOiJjbGpjdHUwemEwNXJrM2pzMmVweHZmaGZyIn0.ba08N3pplLUsHng3Q-AjQA";
